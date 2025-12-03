@@ -22,7 +22,7 @@
                 @if(auth()->check() && auth()->user()->role === 'admin')
                     <a href="{{ route('user.index') }}"
                         class="flex items-center gap-1 transition 
-                            {{ request()->routeIs('user.index') ? 'text-blue-600 font-semibold' : 'hover:text-blue-600' }}">
+                                        {{ request()->routeIs('user.index') ? 'text-blue-600 font-semibold' : 'hover:text-blue-600' }}">
                         <i class="fa-solid fa-users"></i> Manage Users
                     </a>
                 @endif
@@ -59,7 +59,7 @@
                     <li>
                         <form action="{{ route('logout') }}" method="POST">
                             @csrf
-                            <button class="flex items-center gap-2 text-red-600 text-sm">
+                            <button class="logout-btn flex items-center gap-2 text-red-600 text-sm">
                                 <i class="fa-solid fa-right-from-bracket"></i> Logout
                             </button>
                         </form>
@@ -85,8 +85,9 @@
         </a>
 
         @if(auth()->check() && auth()->user()->role === 'admin')
-            <a href="{{ route('user.index') }}" class="flex items-center gap-2 text-gray-700 text-sm
-                           {{ request()->routeIs('user.index') ? 'text-blue-600 font-semibold' : 'hover:text-blue-600' }}">
+            <a href="{{ route('user.index') }}"
+                class="flex items-center gap-2 text-gray-700 text-sm
+                                       {{ request()->routeIs('user.index') ? 'text-blue-600 font-semibold' : 'hover:text-blue-600' }}">
                 <i class="fa-solid fa-users"></i>
                 Manage Users
             </a>

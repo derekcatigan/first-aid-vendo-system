@@ -115,7 +115,7 @@
                                     </td>
                                 </tr>
                             @empty
-                                <tr>
+                                <tr class="no-items-row">
                                     <td colspan="5" class="px-4 py-6 text-center text-gray-500">No items found.</td>
                                 </tr>
                             @endforelse
@@ -178,17 +178,18 @@
                         Toast.fire({ icon: "success", title: response.message });
                         const item = response.item;
 
-                        $("#itemTableBody").append(`
-                        <tr class="hover:bg-gray-50 transition-colors text-sm">
-                            <td class="px-4 py-3 text-gray-700 font-medium">${item.item_name}</td>
-                            <td class="px-4 py-3 text-gray-700">${item.quantity}</td>
-                            <td class="px-4 py-3 text-gray-700">${item.keypad}</td>
-                            <td class="px-4 py-3 text-gray-700">${item.motor_index}</td>
-                            <td class="px-4 py-3 text-center">
-                                <button class="btn btn-xs btn-error deleteBtn" data-id="${item.id}">Delete</button>
-                            </td>
-                        </tr>`);
+                        $(".no-items-row").remove();
 
+                        $("#itemTableBody").append(`
+                                            <tr class="hover:bg-gray-50 transition-colors text-sm">
+                                                <td class="px-4 py-3 text-gray-700 font-medium">${item.item_name}</td>
+                                                <td class="px-4 py-3 text-gray-700">${item.quantity}</td>
+                                                <td class="px-4 py-3 text-gray-700">${item.keypad}</td>
+                                                <td class="px-4 py-3 text-gray-700">${item.motor_index}</td>
+                                                <td class="px-4 py-3 text-center">
+                                                    <button class="btn btn-xs btn-error deleteBtn" data-id="${item.id}">Delete</button>
+                                                </td>
+                                            </tr>`);
                         $("#itemForm")[0].reset();
                         usedKeypads.push(item.keypad);
                         usedMotors.push(item.motor_index);

@@ -37,6 +37,15 @@
     {{-- Chart.js --}}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+
+
+    {{-- Mobile Menu Script --}}
+    <script>
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+            document.getElementById('mobileMenu').classList.toggle('hidden');
+        });
+    </script>
+
     <script>
         $(document).ready(function () {
             $('.logout-btn').on('click', function (e) {
@@ -57,13 +66,6 @@
                     }
                 });
             });
-        });
-    </script>
-
-    {{-- Mobile Menu Script --}}
-    <script>
-        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
-            document.getElementById('mobileMenu').classList.toggle('hidden');
         });
     </script>
 
