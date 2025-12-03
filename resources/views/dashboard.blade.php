@@ -314,14 +314,14 @@
                     const time = log.created_at_formatted; // use the pre-formatted string
 
                     tbody.append(`
-                    <tr class="text-sm hover:bg-gray-50 transition-colors">
-                        <td class="px-4 py-3 font-medium text-gray-700">${action}</td>
-                        <td class="px-4 py-3 text-gray-700">${itemName}</td>
-                        <td class="px-4 py-3">${quantity}</td>
-                        <td class="px-4 py-3 text-gray-700">${user}</td>
-                        <td class="px-4 py-3 text-gray-700">${time}</td>
-                    </tr>
-                `);
+                        <tr class="text-sm hover:bg-gray-50 transition-colors">
+                            <td class="px-4 py-3 font-medium text-gray-700">${action}</td>
+                            <td class="px-4 py-3 text-gray-700">${itemName}</td>
+                            <td class="px-4 py-3">${quantity}</td>
+                            <td class="px-4 py-3 text-gray-700">${user}</td>
+                            <td class="px-4 py-3 text-gray-700">${time}</td>
+                        </tr>
+                    `);
                 });
             });
         }
