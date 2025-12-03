@@ -1,0 +1,26 @@
+@import 'tailwindcss';
+@plugin "daisyui";
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+/* Global base font */
+html {
+    font-family: var(--font-sans);
+}
+
+/* Optional resets */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+body {
+    min-height: 100vh;
+}
