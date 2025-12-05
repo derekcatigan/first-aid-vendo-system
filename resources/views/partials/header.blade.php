@@ -22,15 +22,15 @@
                 @if(auth()->check() && auth()->user()->role === 'admin')
                     <a href="{{ route('user.index') }}"
                         class="flex items-center gap-1 transition 
-                                        {{ request()->routeIs('user.index') ? 'text-blue-600 font-semibold' : 'hover:text-blue-600' }}">
+                                                {{ request()->routeIs('user.index') ? 'text-blue-600 font-semibold' : 'hover:text-blue-600' }}">
                         <i class="fa-solid fa-users"></i> Manage Users
                     </a>
-                @endif
 
-                <a href="{{ route('item.index') }}" class="flex items-center gap-1 transition 
-                {{ request()->routeIs('item.*') ? 'text-blue-600 font-semibold' : 'hover:text-blue-600' }}">
-                    <i class="fa-solid fa-boxes-stacked"></i> Manage Inventory
-                </a>
+                    <a href="{{ route('item.index') }}" class="flex items-center gap-1 transition 
+                        {{ request()->routeIs('item.*') ? 'text-blue-600 font-semibold' : 'hover:text-blue-600' }}">
+                        <i class="fa-solid fa-boxes-stacked"></i> Manage Inventory
+                    </a>
+                @endif
             </div>
 
             {{-- User Dropdown --}}
@@ -87,7 +87,7 @@
         @if(auth()->check() && auth()->user()->role === 'admin')
             <a href="{{ route('user.index') }}"
                 class="flex items-center gap-2 text-gray-700 text-sm
-                                       {{ request()->routeIs('user.index') ? 'text-blue-600 font-semibold' : 'hover:text-blue-600' }}">
+                                               {{ request()->routeIs('user.index') ? 'text-blue-600 font-semibold' : 'hover:text-blue-600' }}">
                 <i class="fa-solid fa-users"></i>
                 Manage Users
             </a>
