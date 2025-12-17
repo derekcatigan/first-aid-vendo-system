@@ -115,29 +115,36 @@
 
                         <tbody class="bg-white divide-y divide-gray-200">
                             @forelse ($recentLogs as $log)
-                                <tr class="text-sm hover:bg-gray-50 transition-colors">
-                                    <td class="px-4 py-3 font-medium text-gray-700">
-                                        @if ($log->log_type === 'restock')
-                                            <span class="text-green-700 font-semibold">Restocked</span>
-                                        @elseif ($log->log_type === 'dispense')
-                                            <span class="text-red-700 font-semibold">Dispensed</span>
-                                        @else
-                                            <span class="text-gray-600">{{ ucfirst($log->log_type) }}</span>
-                                        @endif
-                                    </td>
-                                    <td class="px-4 py-3 text-gray-700">{{ $log->item->item_name ?? 'Unknown Item' }}</td>
-                                    <td class="px-4 py-3">
-                                        @if ($log->quantity_change > 0)
-                                            <span class="text-green-700 font-bold">+{{ $log->quantity_change }}</span>
-                                        @else
-                                            <span class="text-red-700 font-bold">{{ $log->quantity_change }}</span>
-                                        @endif
-                                    </td>
-                                    <td class="px-4 py-3 text-gray-700">{{ $log->user->name ?? 'System' }}</td>
-                                    <td class="px-4 py-3 text-gray-700">
-                                        {{ $log->created_at->format('M d, Y h:i A') }} — {{ $log->created_at->diffForHumans() }}
-                                    </td>
-                                </tr>
+                                                <tr class="text-sm hover:bg-gray-50 transition-colors">
+                                                    <td class="px-4 py-3 font-medium text-gray-700">
+                                                        @if ($log->log_type === 'restock')
+                                                            <span class="text-green-700 font-semibold">Restocked</span>
+                                                        @elseif ($log->log_type === 'dispense')
+                                                            <span class="text-red-700 font-semibold">Dispensed</span>
+                                                        @else
+                                                            <span class="text-gray-600">{{ ucfirst($log->log_type) }}</span>
+                                                        @endif
+                                                    </td>
+                                                    <td class="px-4 py-3 text-gray-700">{{ $log->item->item_name ?? 'Unknown Item' }}</td>
+                                                    <td class="px-4 py-3">
+                                                        @if ($log->quantity_change > 0)
+                                                            <span class="text-green-700 font-bold">+{{ $log->quantity_change }}</span>
+                                                        @else
+                                                            <span class="text-red-700 font-bold">{{ $log->quantity_change }}</span>
+                                                        @endif
+                                                    </td>
+                                                    <td class="px-4 py-3 text-gray-700">{{ $log->user->name ?? 'System' }}</td>
+                                                    <td class="px-4 py-3 text-gray-700">
+                                                        {{ $log->created_at
+                                ->timezone(config('app.timezone'))
+                                ->format('M d, Y h:i A') }}
+                                                        —
+                                                        {{ $log->created_at
+                                ->timezone(config('app.timezone'))
+                                ->diffForHumans() }}
+                                                    </td>
+
+                                                </tr>
                             @empty
                                 <tr>
                                     <td colspan="5" class="text-center text-gray-500 py-4">No recent activity found.</td>
@@ -316,14 +323,14 @@
                     const time = log.created_at_formatted; // use the pre-formatted string
 
                     tbody.append(`
-                                            <tr class="text-sm hover:bg-gray-50 transition-colors">
-                                                <td class="px-4 py-3 font-medium text-gray-700">${action}</td>
-                                                <td class="px-4 py-3 text-gray-700">${itemName}</td>
-                                                <td class="px-4 py-3">${quantity}</td>
-                                                <td class="px-4 py-3 text-gray-700">${user}</td>
-                                                <td class="px-4 py-3 text-gray-700">${time}</td>
-                                            </tr>
-                                        `);
+                                                        <tr class="text-sm hover:bg-gray-50 transition-colors">
+                                                            <td class="px-4 py-3 font-medium text-gray-700">${action}</td>
+                                                            <td class="px-4 py-3 text-gray-700">${itemName}</td>
+                                                            <td class="px-4 py-3">${quantity}</td>
+                                                            <td class="px-4 py-3 text-gray-700">${user}</td>
+                                                            <td class="px-4 py-3 text-gray-700">${time}</td>
+                                                        </tr>
+                                                    `);
                 });
             });
         }

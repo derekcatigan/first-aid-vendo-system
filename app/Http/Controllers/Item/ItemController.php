@@ -71,6 +71,47 @@ class ItemController extends Controller
         }
     }
 
+    public function updateQuantity(Request $request, Item $item)
+    {
+        $validated = $request->validate([
+            'quantity' => 'required|integer|min:0',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $oldQty = $item->quantity;
+            $newQty = $validated['quantity'];
+            $change = $newQty - $oldQty;
+
+            $item->update([
+                'quantity' => $newQty,
+            ]);
+
+            ItemLog::create([
+                'item_id' => $item->id,
+                'user_id' => Auth::id(),
+                'quantity_change' => $change,
+                'log_type' => 'update',
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Quantity updated successfully',
+                'quantity' => $newQty
+            ]);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage());
+
+            return response()->json([
+                'message' => 'Failed to update quantity'
+            ], 500);
+        }
+    }
+
+
     public function destroy($id)
     {
         try {

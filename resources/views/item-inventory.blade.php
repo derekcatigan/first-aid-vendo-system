@@ -111,6 +111,10 @@
                                     <td class="px-4 py-3 text-gray-600">{{ $item->keypad }}</td>
                                     <td class="px-4 py-3 text-gray-600">{{ $item->motor_index }}</td>
                                     <td class="px-4 py-3 text-center">
+                                        <button class="btn btn-xs btn-primary editBtn" data-id="{{ $item->id }}"
+                                            data-quantity="{{ $item->quantity }}">
+                                            Edit
+                                        </button>
                                         <button class="btn btn-xs btn-error deleteBtn" data-id="{{ $item->id }}">Delete</button>
                                     </td>
                                 </tr>
@@ -125,6 +129,32 @@
             </div>
         </div>
     </section>
+
+    {{-- Edit Quantity Modal --}}
+    <input type="checkbox" id="editQtyModal" class="modal-toggle" />
+    <div class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg">Update Item Quantity</h3>
+
+            <form id="editQtyForm">
+                @csrf
+                @method('PATCH')
+
+                <input type="hidden" id="editItemId">
+
+                <div class="mt-4">
+                    <label class="label">New Quantity</label>
+                    <input type="number" id="editQuantity" class="input input-bordered w-full" min="0" required>
+                </div>
+
+                <div class="modal-action">
+                    <label for="editQtyModal" class="btn btn-ghost">Cancel</label>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 
     {{-- Pass used keypads and motors to JS --}}
     <script>
@@ -160,6 +190,51 @@
                 if (usedMotors.includes(val)) { showToastError("Motor already assigned"); $(this).val(""); }
             });
 
+            // Open edit modal
+            $(document).on("click", ".editBtn", function () {
+                const itemId = $(this).data("id");
+                const qty = $(this).data("quantity");
+
+                $("#editItemId").val(itemId);
+                $("#editQuantity").val(qty);
+
+                $("#editQtyModal").prop("checked", true);
+            });
+
+            // Submit update quantity
+            $("#editQtyForm").on("submit", function (e) {
+                e.preventDefault();
+
+                const itemId = $("#editItemId").val();
+                const quantity = $("#editQuantity").val();
+
+                $.ajax({
+                    url: `/item/${itemId}/quantity`,
+                    type: "PATCH",
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        quantity: quantity
+                    },
+                    success: function (res) {
+                        Toast.fire({ icon: "success", title: res.message });
+
+                        // Update quantity in table
+                        $(`button[data-id="${itemId}"]`)
+                            .closest("tr")
+                            .find("td:nth-child(2)")
+                            .text(res.quantity);
+
+                        // Update data attribute
+                        $(`button[data-id="${itemId}"]`).data("quantity", res.quantity);
+
+                        $("#editQtyModal").prop("checked", false);
+                    },
+                    error: function () {
+                        Toast.fire({ icon: "error", title: "Failed to update quantity" });
+                    }
+                });
+            });
+
             // AJAX Store
             $("#itemForm").on("submit", function (e) {
                 e.preventDefault();
@@ -181,15 +256,18 @@
                         $(".no-items-row").remove();
 
                         $("#itemTableBody").append(`
-                                            <tr class="hover:bg-gray-50 transition-colors text-sm">
-                                                <td class="px-4 py-3 text-gray-700 font-medium">${item.item_name}</td>
-                                                <td class="px-4 py-3 text-gray-700">${item.quantity}</td>
-                                                <td class="px-4 py-3 text-gray-700">${item.keypad}</td>
-                                                <td class="px-4 py-3 text-gray-700">${item.motor_index}</td>
-                                                <td class="px-4 py-3 text-center">
-                                                    <button class="btn btn-xs btn-error deleteBtn" data-id="${item.id}">Delete</button>
-                                                </td>
-                                            </tr>`);
+                            <tr class="hover:bg-gray-50 transition-colors text-sm">
+                                <td class="px-4 py-3 text-gray-700 font-medium">${item.item_name}</td>
+                                <td class="px-4 py-3 text-gray-700">${item.quantity}</td>
+                                <td class="px-4 py-3 text-gray-700">${item.keypad}</td>
+                                <td class="px-4 py-3 text-gray-700">${item.motor_index}</td>
+                                <td class="px-4 py-3 text-center">
+                                <button class="btn btn-xs btn-primary editBtn" data-id="${item.id}" data-quantity="${item.quantity}">
+                                    Edit
+                                </button>
+                                    <button class="btn btn-xs btn-error deleteBtn" data-id="${item.id}">Delete</button>
+                                </td>
+                            </tr>`);
                         $("#itemForm")[0].reset();
                         usedKeypads.push(item.keypad);
                         usedMotors.push(item.motor_index);

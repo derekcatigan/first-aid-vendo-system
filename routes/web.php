@@ -22,6 +22,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/items/inventory', [ItemController::class, 'index'])->name('item.index');
         Route::post('/items/inventory', [ItemController::class, 'store'])->name('item.store');
         Route::delete('/item/{id}', [ItemController::class, 'destroy'])->name('item.destroy');
+        Route::patch('/item/{item}/quantity', [ItemController::class, 'updateQuantity'])
+            ->name('item.updateQuantity');
     });
 
     // Routes for Admin and Worker
