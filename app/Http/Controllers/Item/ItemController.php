@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class ItemController extends Controller
 {
@@ -28,8 +29,21 @@ class ItemController extends Controller
             'itemName'        => 'required|string|max:255',
             'itemDescription' => 'nullable|string',
             'itemQuantity'    => 'required|integer|min:0',
-            'itemKey'         => 'required|integer|unique:items,keypad',
-            'itemMotor'       => 'required|integer|unique:items,motor_index',
+            'itemKey' => [
+                'required',
+                'integer',
+                Rule::unique('items', 'keypad')->where(function ($query) {
+                    return $query->where('is_active', true);
+                }),
+            ],
+
+            'itemMotor' => [
+                'required',
+                'integer',
+                Rule::unique('items', 'motor_index')->where(function ($query) {
+                    return $query->where('is_active', true);
+                }),
+            ],
             'itemLowStock'    => 'required|integer|min:0',
         ]);
 
@@ -67,6 +81,64 @@ class ItemController extends Controller
 
             return response()->json([
                 'message' => 'Failed to create item.',
+            ], 500);
+        }
+    }
+
+    public function toggleStatus(Item $item)
+    {
+        DB::beginTransaction();
+
+        try {
+            // If enabling, check hardware conflicts
+            if (! $item->is_active) {
+
+                // Max 8 active items rule
+                $activeCount = Item::where('is_active', true)->count();
+                if ($activeCount >= 8) {
+                    return response()->json([
+                        'message' => 'Only 8 active items are allowed in the dispenser.'
+                    ], 422);
+                }
+
+                // Check keypad / motor conflict
+                $conflict = Item::where('is_active', true)
+                    ->where(function ($q) use ($item) {
+                        $q->where('keypad', $item->keypad)
+                            ->orWhere('motor_index', $item->motor_index);
+                    })
+                    ->exists();
+
+                if ($conflict) {
+                    return response()->json([
+                        'message' => 'Cannot enable item. Keypad or motor is already in use.'
+                    ], 422);
+                }
+            }
+
+            $item->update([
+                'is_active' => ! $item->is_active,
+            ]);
+
+            ItemLog::create([
+                'item_id' => $item->id,
+                'user_id' => Auth::id(),
+                'quantity_change' => 0,
+                'log_type' => $item->is_active ? 'enabled' : 'disabled',
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => $item->is_active ? 'Item enabled' : 'Item disabled',
+                'is_active' => $item->is_active,
+            ]);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage());
+
+            return response()->json([
+                'message' => 'Failed to update item status'
             ], 500);
         }
     }

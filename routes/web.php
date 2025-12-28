@@ -24,6 +24,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/item/{id}', [ItemController::class, 'destroy'])->name('item.destroy');
         Route::patch('/item/{item}/quantity', [ItemController::class, 'updateQuantity'])
             ->name('item.updateQuantity');
+        Route::patch('/item/{item}/toggle-status', [ItemController::class, 'toggleStatus']);
     });
 
     // Routes for Admin and Worker

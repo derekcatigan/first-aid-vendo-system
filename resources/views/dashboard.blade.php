@@ -156,7 +156,7 @@
             </div>
         </div>
 
-        {{-- Live Inventory Status --}}
+        {{-- Dispenser Inventory Status --}}
         <div class="mt-10 bg-white p-4 border border-gray-300 shadow rounded-sm">
             <div class="flex items-center gap-2 mb-4">
                 <div class="w-10 h-10 flex items-center justify-center bg-gray-100 border border-gray-300 rounded-sm">
@@ -166,7 +166,7 @@
                             d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0h6" />
                     </svg>
                 </div>
-                <h2 class="text-lg font-bold">Live Inventory Status</h2>
+                <h2 class="text-lg font-bold">Dispenser Inventory Status</h2>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -183,12 +183,11 @@
                                 Quantity: <span id="qty-{{ $item->id }}">{{ $item->quantity }}</span>
                             </span>
 
-                            @if (Auth::user()->role === 'admin')
-                                <button class="btn btn-success btn-sm"
-                                    onclick="openRestockModal({{ $item->id }}, '{{ addslashes($item->item_name) }}')">
-                                    Restock
-                                </button>
-                            @endif
+
+                            <button class="btn btn-success btn-sm"
+                                onclick="openRestockModal({{ $item->id }}, '{{ addslashes($item->item_name) }}')">
+                                Restock
+                            </button>
                         </div>
                     </div>
                 @endforeach
@@ -323,14 +322,14 @@
                     const time = log.created_at_formatted; // use the pre-formatted string
 
                     tbody.append(`
-                                                        <tr class="text-sm hover:bg-gray-50 transition-colors">
-                                                            <td class="px-4 py-3 font-medium text-gray-700">${action}</td>
-                                                            <td class="px-4 py-3 text-gray-700">${itemName}</td>
-                                                            <td class="px-4 py-3">${quantity}</td>
-                                                            <td class="px-4 py-3 text-gray-700">${user}</td>
-                                                            <td class="px-4 py-3 text-gray-700">${time}</td>
-                                                        </tr>
-                                                    `);
+                                                                <tr class="text-sm hover:bg-gray-50 transition-colors">
+                                                                    <td class="px-4 py-3 font-medium text-gray-700">${action}</td>
+                                                                    <td class="px-4 py-3 text-gray-700">${itemName}</td>
+                                                                    <td class="px-4 py-3">${quantity}</td>
+                                                                    <td class="px-4 py-3 text-gray-700">${user}</td>
+                                                                    <td class="px-4 py-3 text-gray-700">${time}</td>
+                                                                </tr>
+                                                            `);
                 });
             });
         }

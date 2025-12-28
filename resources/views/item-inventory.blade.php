@@ -105,18 +105,33 @@
                         </thead>
                         <tbody id="itemTableBody" class="bg-white divide-y divide-gray-200">
                             @forelse ($items as $item)
-                                <tr class="hover:bg-gray-50 transition-colors text-sm">
+                                <tr
+                                    class="hover:bg-gray-50 transition-colors text-sm
+                                                                                                                {{ !$item->is_active ? 'opacity-50' : '' }}">
                                     <td class="px-4 py-3 text-gray-700 font-medium">{{ $item->item_name }}</td>
                                     <td class="px-4 py-3 text-gray-600">{{ $item->quantity }}</td>
                                     <td class="px-4 py-3 text-gray-600">{{ $item->keypad }}</td>
                                     <td class="px-4 py-3 text-gray-600">{{ $item->motor_index }}</td>
-                                    <td class="px-4 py-3 text-center">
+                                    {{-- <td class="px-4 py-3 text-center">
                                         <button class="btn btn-xs btn-primary editBtn" data-id="{{ $item->id }}"
                                             data-quantity="{{ $item->quantity }}">
                                             Edit
                                         </button>
                                         <button class="btn btn-xs btn-error deleteBtn" data-id="{{ $item->id }}">Delete</button>
+                                    </td> --}}
+                                    <td class="px-4 py-3 text-center space-x-1">
+                                        <button class="btn btn-xs btn-primary editBtn" data-id="{{ $item->id }}"
+                                            data-quantity="{{ $item->quantity }}" {{ !$item->is_active ? 'disabled' : '' }}>
+                                            Edit
+                                        </button>
+
+                                        <button
+                                            class="btn btn-xs {{ $item->is_active ? 'btn-warning' : 'btn-success' }} toggleBtn"
+                                            data-id="{{ $item->id }}">
+                                            {{ $item->is_active ? 'Disable' : 'Enable' }}
+                                        </button>
                                     </td>
+
                                 </tr>
                             @empty
                                 <tr class="no-items-row">
@@ -158,8 +173,13 @@
 
     {{-- Pass used keypads and motors to JS --}}
     <script>
-        const usedKeypads = @json($items->pluck('keypad')).map(Number);
-        const usedMotors = @json($items->pluck('motor_index')).map(Number);
+        let usedKeypads = @json(
+            $items->where('is_active', true)->pluck('keypad')
+        ).map(Number);
+
+        let usedMotors = @json(
+            $items->where('is_active', true)->pluck('motor_index')
+        ).map(Number);
     </script>
 @endsection
 
@@ -256,21 +276,33 @@
                         $(".no-items-row").remove();
 
                         $("#itemTableBody").append(`
-                            <tr class="hover:bg-gray-50 transition-colors text-sm">
-                                <td class="px-4 py-3 text-gray-700 font-medium">${item.item_name}</td>
-                                <td class="px-4 py-3 text-gray-700">${item.quantity}</td>
-                                <td class="px-4 py-3 text-gray-700">${item.keypad}</td>
-                                <td class="px-4 py-3 text-gray-700">${item.motor_index}</td>
-                                <td class="px-4 py-3 text-center">
-                                <button class="btn btn-xs btn-primary editBtn" data-id="${item.id}" data-quantity="${item.quantity}">
-                                    Edit
-                                </button>
-                                    <button class="btn btn-xs btn-error deleteBtn" data-id="${item.id}">Delete</button>
+                                                                            <tr class="hover:bg-gray-50 transition-colors text-sm">
+                                                                                <td class="px-4 py-3 text-gray-700 font-medium">${item.item_name}</td>
+                                                                                <td class="px-4 py-3 text-gray-700">${item.quantity}</td>
+                                                                                <td class="px-4 py-3 text-gray-700">${item.keypad}</td>
+                                                                                <td class="px-4 py-3 text-gray-700">${item.motor_index}</td>
+                                                                                <td class="px-4 py-3 text-center space-x-1">
+                                    <button class="btn btn-xs btn-primary editBtn"
+                                        data-id="${item.id}"
+                                        data-quantity="${item.quantity}">
+                                        Edit
+                                    </button>
+
+                                    <button class="btn btn-xs btn-warning toggleBtn"
+                                        data-id="${item.id}">
+                                        Disable
+                                    </button>
                                 </td>
-                            </tr>`);
+                                                                            </tr>`);
                         $("#itemForm")[0].reset();
-                        usedKeypads.push(item.keypad);
-                        usedMotors.push(item.motor_index);
+                        const usedKeypads = @json(
+                            $items->where('is_active', true)->pluck('keypad')
+                        ).map(Number);
+
+                        const usedMotors = @json(
+                            $items->where('is_active', true)->pluck('motor_index')
+                        ).map(Number);
+
                     },
                     error: function (xhr) {
                         if (xhr.status === 422) Object.values(xhr.responseJSON.errors).forEach(msg => showToastError(msg[0]));
@@ -283,6 +315,61 @@
                     }
                 });
             });
+
+            $(document).on("click", ".toggleBtn", function () {
+                const btn = $(this);
+                const itemId = btn.data("id");
+
+                $.ajax({
+                    url: `/item/${itemId}/toggle-status`,
+                    type: "PATCH",
+                    data: { _token: "{{ csrf_token() }}" },
+                    success: function (res) {
+                        Toast.fire({ icon: "success", title: res.message });
+
+                        const row = btn.closest("tr");
+                        const editBtn = row.find(".editBtn");
+
+                        const keypad = parseInt(row.find("td:nth-child(3)").text());
+                        const motor = parseInt(row.find("td:nth-child(4)").text());
+
+                        if (res.is_active) {
+                            btn
+                                .removeClass("btn-success")
+                                .addClass("btn-warning")
+                                .text("Disable");
+
+                            editBtn.prop("disabled", false);
+                            row.removeClass("opacity-50");
+
+                            usedKeypads.push(keypad);
+                            usedMotors.push(motor);
+                        } else {
+                            btn
+                                .removeClass("btn-warning")
+                                .addClass("btn-success")
+                                .text("Enable");
+
+                            editBtn.prop("disabled", true);
+                            row.addClass("opacity-50");
+
+                            // Remove from used arrays
+                            const kIndex = usedKeypads.indexOf(keypad);
+                            if (kIndex !== -1) usedKeypads.splice(kIndex, 1);
+
+                            const mIndex = usedMotors.indexOf(motor);
+                            if (mIndex !== -1) usedMotors.splice(mIndex, 1);
+                        }
+                    },
+                    error: function (xhr) {
+                        Toast.fire({
+                            icon: "error",
+                            title: xhr.responseJSON?.message || "Action failed"
+                        });
+                    }
+                });
+            });
+
 
             // AJAX Delete
             $(document).on("click", ".deleteBtn", function () {

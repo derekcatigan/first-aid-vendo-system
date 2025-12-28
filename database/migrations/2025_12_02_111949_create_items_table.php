@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('item_name');
             $table->longText('description')->nullable();
             $table->unsignedInteger('quantity')->default(0);
+            $table->boolean('is_active')->default(true);
             $table->char('keypad', 1);
             $table->unsignedTinyInteger('motor_index');
             $table->unsignedInteger('low_stock_threshold')->default(0);

@@ -16,6 +16,7 @@ class Item extends Model
         'keypad',
         'motor_index',
         'low_stock_threshold',
+        'is_active'
     ];
 
     /**
