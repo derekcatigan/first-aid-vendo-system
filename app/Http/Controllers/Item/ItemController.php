@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Item;
 
 use App\Http\Controllers\Controller;
+use App\Models\BarangayStock;
 use App\Models\Item;
 use App\Models\ItemLog;
 use Exception;
@@ -18,72 +19,72 @@ class ItemController extends Controller
     public function index()
     {
         $items = Item::orderBy('item_name')->get();
+        $barangayStocks = BarangayStock::orderBy('item_name')->get();
 
-        return view('item-inventory', compact('items'));
+        return view('item-inventory', compact('items', 'barangayStocks'));
     }
 
+    // public function store(Request $request)
+    // {
+    //     $validated = $request->validate([
+    //         'itemName'        => [
+    //             'required',
+    //             'string',
+    //             'max:255',
+    //             // Prevent duplicate active items in Vendo
+    //             Rule::unique('items', 'item_name')->where(fn($q) => $q->where('is_active', true)),
+    //             // Prevent duplicate names in BarangayStock
+    //             Rule::unique('barangay_stocks', 'item_name'),
+    //         ],
+    //         'itemDescription' => 'nullable|string',
+    //         'itemQuantity'    => 'required|integer|min:0',
+    //         'itemKey' => [
+    //             'required',
+    //             'integer',
+    //             Rule::unique('items', 'keypad')->where(fn($q) => $q->where('is_active', true)),
+    //         ],
+    //         'itemMotor' => [
+    //             'required',
+    //             'integer',
+    //             Rule::unique('items', 'motor_index')->where(fn($q) => $q->where('is_active', true)),
+    //         ],
+    //         'itemLowStock'    => 'required|integer|min:0',
+    //     ]);
 
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'itemName'        => 'required|string|max:255',
-            'itemDescription' => 'nullable|string',
-            'itemQuantity'    => 'required|integer|min:0',
-            'itemKey' => [
-                'required',
-                'integer',
-                Rule::unique('items', 'keypad')->where(function ($query) {
-                    return $query->where('is_active', true);
-                }),
-            ],
+    //     DB::beginTransaction();
 
-            'itemMotor' => [
-                'required',
-                'integer',
-                Rule::unique('items', 'motor_index')->where(function ($query) {
-                    return $query->where('is_active', true);
-                }),
-            ],
-            'itemLowStock'    => 'required|integer|min:0',
-        ]);
+    //     try {
+    //         $item = Item::create([
+    //             'item_name'           => Str::title($validated['itemName']),
+    //             'description'         => $validated['itemDescription'],
+    //             'quantity'            => $validated['itemQuantity'],
+    //             'keypad'              => $validated['itemKey'],
+    //             'motor_index'         => $validated['itemMotor'],
+    //             'low_stock_threshold' => $validated['itemLowStock'],
+    //         ]);
 
-        DB::beginTransaction();
+    //         ItemLog::create([
+    //             'item_id'         => $item->id,
+    //             'user_id'         => Auth::id(),
+    //             'quantity_change' => $validated['itemQuantity'],
+    //             'log_type'        => 'Initial Add',
+    //         ]);
 
-        try {
+    //         DB::commit();
 
-            $item = Item::create([
-                'item_name'           => Str::title($validated['itemName']),
-                'description'         => $validated['itemDescription'],
-                'quantity'            => $validated['itemQuantity'],
-                'keypad'              => $validated['itemKey'],
-                'motor_index'         => $validated['itemMotor'],
-                'low_stock_threshold' => $validated['itemLowStock'],
-            ]);
+    //         return response()->json([
+    //             'message' => 'Item created successfully',
+    //             'item' => $item
+    //         ]);
+    //     } catch (Exception $e) {
+    //         DB::rollBack();
+    //         Log::error('Item store failed: ' . $e->getMessage());
 
-            ItemLog::create([
-                'item_id'         => $item->id,
-                'user_id'         => Auth::id(),
-                'quantity_change' => $validated['itemQuantity'],
-                'log_type'        => 'Initial Add',
-            ]);
-
-            DB::commit();
-
-            return response()->json([
-                'message' => 'Item created successfully',
-                'item' => $item
-            ]);
-        } catch (Exception $e) {
-
-            DB::rollBack();
-
-            Log::error('Item store failed: ' . $e->getMessage());
-
-            return response()->json([
-                'message' => 'Failed to create item.',
-            ], 500);
-        }
-    }
+    //         return response()->json([
+    //             'message' => 'Failed to create item. ' . $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
 
     public function toggleStatus(Item $item)
     {

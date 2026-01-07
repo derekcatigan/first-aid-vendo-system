@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\UserController;
 use App\Http\Controllers\Dashboard\DashboardController;
+use App\Http\Controllers\Item\BarangayStockController;
 use App\Http\Controllers\Item\ItemController;
 use Illuminate\Support\Facades\Route;
 
@@ -25,6 +26,14 @@ Route::middleware('auth')->group(function () {
         Route::patch('/item/{item}/quantity', [ItemController::class, 'updateQuantity'])
             ->name('item.updateQuantity');
         Route::patch('/item/{item}/toggle-status', [ItemController::class, 'toggleStatus']);
+
+        // ------------------- BARANGAY STOCK -------------------
+
+        // Add barangay stock item (AJAX)
+        Route::post('/barangay-stock', [BarangayStockController::class, 'store'])->name('barangay.store');
+
+        // Transfer barangay stock to vending machine
+        Route::post('/barangay-stock/transfer/{barangayStock}', [BarangayStockController::class, 'transfer'])->name('barangay.transfer');
     });
 
     // Routes for Admin and Worker
