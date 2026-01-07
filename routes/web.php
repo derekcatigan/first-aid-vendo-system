@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\SecurityPinController;
 use App\Http\Controllers\Auth\UserController;
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Item\BarangayStockController;
@@ -34,6 +35,9 @@ Route::middleware('auth')->group(function () {
 
         // Transfer barangay stock to vending machine
         Route::post('/barangay-stock/transfer/{barangayStock}', [BarangayStockController::class, 'transfer'])->name('barangay.transfer');
+
+        Route::post('/security-pin', [SecurityPinController::class, 'store'])
+            ->middleware('auth');
     });
 
     // Routes for Admin and Worker

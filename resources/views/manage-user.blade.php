@@ -15,6 +15,25 @@
             </div>
         </div>
 
+        {{-- Security PIN --}}
+            <div class="bg-white border border-gray-300 p-4 rounded-sm shadow my-5">
+                <h3 class="font-bold mb-3">Vending Machine Security PIN</h3>
+
+                <form id="pinForm">
+                    @csrf
+                    <fieldset class="mb-3">
+                        <legend class="text-gray-500 text-xs">6-Digit PIN</legend>
+                        <input type="password" maxlength="6" id="pin" class="input w-full" placeholder="Enter 6-digit PIN"
+                            required>
+                    </fieldset>
+
+                    <button type="submit" class="btn btn-primary w-full flex justify-center items-center gap-2">
+                        <span id="pinText">Save PIN</span>
+                        <span id="pinSpinner" class="loading loading-dots loading-sm hidden"></span>
+                    </button>
+                </form>
+            </div>
+
         {{-- Main Layout --}}
         <div class="flex flex-col lg:flex-row gap-4">
 
@@ -116,6 +135,7 @@
                     {{ $users->links() }}
                 </div>
             </div>
+
         </div>
     </section>
 @endsection
@@ -132,6 +152,49 @@
             });
 
             const showToastError = (message) => Toast.fire({ icon: "error", title: message });
+
+            // Save Security PIN
+$("#pinForm").on("submit", function (e) {
+    e.preventDefault();
+
+    const pin = $("#pin").val();
+    const btnText = $("#pinText");
+    const btnSpinner = $("#pinSpinner");
+
+    if (pin.length !== 6) {
+        showToastError("PIN must be exactly 6 digits");
+        return;
+    }
+
+    btnText.addClass("hidden");
+    btnSpinner.removeClass("hidden");
+
+    $.ajax({
+        url: "/security-pin",
+        type: "POST",
+        data: {
+            _token: "{{ csrf_token() }}",
+            pin: pin
+        },
+        success: function (res) {
+            Swal.fire({
+                icon: "success",
+                title: res.message,
+                timer: 2000,
+                showConfirmButton: false
+            });
+            $("#pin").val("");
+        },
+        error: function () {
+            showToastError("Failed to save PIN");
+        },
+        complete: function () {
+            btnText.removeClass("hidden");
+            btnSpinner.addClass("hidden");
+        }
+    });
+});
+
 
             // Create User AJAX
             $("#userCreateForm").on("submit", function (e) {
