@@ -117,4 +117,35 @@ class ItemController extends Controller
             ], 500);
         }
     }
+
+    public function deduct(Item $item)
+    {
+        if ($item->quantity < 1) {
+            return response()->json([
+                'message' => 'No stock left to deduct.'
+            ], 422);
+        }
+
+        DB::beginTransaction();
+
+        try {
+            $item->decrement('quantity', 1);
+
+            ItemLog::create([
+                'item_id' => $item->id,
+                'user_id' => Auth::id(),
+                'quantity_change' => -1,
+                'log_type' => 'Vendo Deduction',
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => '1 unit deducted'
+            ]);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Deduction failed'], 500);
+        }
+    }
 }

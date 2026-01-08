@@ -207,4 +207,36 @@ class BarangayStockController extends Controller
             return response()->json(['message' => 'An internal error occurred.'], 500);
         }
     }
+
+    public function deduct(BarangayStock $barangayStock)
+    {
+        if ($barangayStock->quantity < 1) {
+            return response()->json([
+                'message' => 'No stock left to deduct.'
+            ], 422);
+        }
+
+        DB::beginTransaction();
+
+        try {
+            $barangayStock->decrement('quantity', 1);
+
+            ItemLog::create([
+                'item_id' => null,
+                'user_id' => Auth::id(),
+                'quantity_change' => -1,
+                'log_type' => "Barangay Deduction: {$barangayStock->item_name}",
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => '1 unit deducted',
+                'new_quantity' => $barangayStock->quantity
+            ]);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Deduction failed'], 500);
+        }
+    }
 }

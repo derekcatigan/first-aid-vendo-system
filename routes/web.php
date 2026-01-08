@@ -27,6 +27,7 @@ Route::middleware('auth')->group(function () {
         Route::patch('/item/{item}/quantity', [ItemController::class, 'updateQuantity'])
             ->name('item.updateQuantity');
         Route::patch('/item/{item}/toggle-status', [ItemController::class, 'toggleStatus']);
+        Route::patch('/item/{item}/deduct', [ItemController::class, 'deduct']);
 
         // ------------------- BARANGAY STOCK -------------------
 
@@ -40,6 +41,7 @@ Route::middleware('auth')->group(function () {
 
         Route::post('/security-pin', [SecurityPinController::class, 'store'])
             ->middleware('auth');
+        Route::patch('/barangay-stock/{barangayStock}/deduct', [BarangayStockController::class, 'deduct']);
     });
 
     // Routes for Admin and Worker

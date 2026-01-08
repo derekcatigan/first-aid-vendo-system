@@ -26,16 +26,19 @@
                     @csrf
                     <div>
                         <label class="text-xs text-gray-500">Item Name</label>
-                        <input type="text" name="itemName" class="input input-bordered w-full" placeholder="Cotton Balls" required>
+                        <input type="text" name="itemName" class="input input-bordered w-full" placeholder="Cotton Balls"
+                            required>
                     </div>
                     <div>
                         <label class="text-xs text-gray-500">Description</label>
-                        <textarea name="itemDescription" class="textarea textarea-bordered w-full" placeholder="Short description"></textarea>
+                        <textarea name="itemDescription" class="textarea textarea-bordered w-full"
+                            placeholder="Short description"></textarea>
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="text-xs text-gray-500">Quantity</label>
-                            <input type="number" name="itemQuantity" class="input input-bordered w-full" min="0" value="0" required>
+                            <input type="number" name="itemQuantity" class="input input-bordered w-full" min="0" value="0"
+                                required>
                         </div>
                         <div>
                             <label class="text-xs text-gray-500">Low Stock Alert</label>
@@ -68,12 +71,21 @@
                                     <td class="data-cell">{{ $item->keypad }}</td>
                                     <td class="data-cell">{{ $item->motor_index }}</td>
                                     <td class="text-center space-x-1">
-                                        <button class="toggleBtn btn btn-xs {{ $item->is_active ? 'btn-outline btn-warning' : 'btn-success animate-pulse shadow-md' }}" data-id="{{ $item->id }}">
+                                        <button
+                                            class="toggleBtn btn btn-xs {{ $item->is_active ? 'btn-outline btn-warning' : 'btn-success animate-pulse shadow-md' }}"
+                                            data-id="{{ $item->id }}">
                                             @if($item->is_active)
                                                 <i class="fa-solid fa-ban mr-1"></i> Disable
                                             @else
                                                 <i class="fa-solid fa-play mr-1"></i> Enable
                                             @endif
+                                        </button>
+                                        <button
+                                            class="btn btn-xs btn-warning deductItemBtn"
+                                            data-id="{{ $item->id }}"
+                                            title="Deduct 1"
+                                        >
+                                            <i class="fa-solid fa-minus"></i>
                                         </button>
                                         <button class="btn btn-xs btn-ghost text-error deleteBtn" data-id="{{ $item->id }}">
                                             <i class="fa-solid fa-trash"></i>
@@ -108,10 +120,15 @@
                                     <td class="font-medium">{{ $bItem->item_name }}</td>
                                     <td id="barangay-qty-{{ $bItem->id }}">{{ $bItem->quantity }}</td>
                                     <td class="text-center space-x-1">
-                                        <button class="btn btn-xs btn-info restockBtn" data-id="{{ $bItem->id }}" data-name="{{ $bItem->item_name }}">
+                                        <button class="btn btn-xs btn-info restockBtn" data-id="{{ $bItem->id }}"
+                                            data-name="{{ $bItem->item_name }}">
                                             <i class="fa-solid fa-plus"></i> Restock
                                         </button>
-                                        <button class="btn btn-xs btn-success transferBtn" data-id="{{ $bItem->id }}">Transfer</button>
+                                        <button class="btn btn-xs btn-success transferBtn"
+                                            data-id="{{ $bItem->id }}">Transfer</button>
+                                        <button class="btn btn-xs btn-warning deductBarangayBtn" data-id="{{ $bItem->id }}" title="Deduct 1">
+                                                <i class="fa-solid fa-minus"></i>
+                                            </button>
                                         <button class="btn btn-xs btn-error deleteBarangayBtn" data-id="{{ $bItem->id }}">
                                             <i class="fa-solid fa-trash"></i>
                                         </button>
@@ -163,11 +180,13 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="text-xs text-gray-500">Keypad (1-8)</label>
-                        <input type="number" id="transferKeypad" class="input input-bordered w-full" min="1" max="8" required>
+                        <input type="number" id="transferKeypad" class="input input-bordered w-full" min="1" max="8"
+                            required>
                     </div>
                     <div>
                         <label class="text-xs text-gray-500">Motor Index (1-8)</label>
-                        <input type="number" id="transferMotor" class="input input-bordered w-full" min="1" max="8" required>
+                        <input type="number" id="transferMotor" class="input input-bordered w-full" min="1" max="8"
+                            required>
                     </div>
                 </div>
                 <div class="modal-action">
@@ -192,6 +211,40 @@
 
             const showToastError = (msg) => Toast.fire({ icon: "error", title: msg });
 
+            $(document).on("click", ".deductItemBtn", function () {
+                const id = $(this).data("id");
+
+                $.ajax({
+                    url: `/item/${id}/deduct`,
+                    type: "PATCH",
+                    data: { _token: "{{ csrf_token() }}" },
+                    success: (res) => {
+                        Toast.fire({ icon: "success", title: res.message });
+                        location.reload();
+                    },
+                    error: (xhr) => {
+                        showToastError(xhr.responseJSON?.message || "Deduction failed");
+                    }
+                });
+            });
+
+            $(document).on("click", ".deductBarangayBtn", function () {
+                const id = $(this).data("id");
+
+                $.ajax({
+                    url: `/barangay-stock/${id}/deduct`,
+                    type: "PATCH",
+                    data: { _token: "{{ csrf_token() }}" },
+                    success: (res) => {
+                        Toast.fire({ icon: "success", title: res.message });
+                        $(`#barangay-qty-${id}`).text(res.new_quantity);
+                    },
+                    error: (xhr) => {
+                        showToastError(xhr.responseJSON?.message || "Deduction failed");
+                    }
+                });
+            });
+
             // --- Barangay Stock Add ---
             $("#barangayForm").on("submit", function (e) {
                 e.preventDefault();
@@ -199,16 +252,23 @@
                     Toast.fire({ icon: 'success', title: res.message });
                     $(".no-barangay-items").remove();
                     $("#barangayTableBody").append(`
-                        <tr id="barangay-row-${res.barangayItem.id}">
-                            <td class="font-medium">${res.barangayItem.item_name}</td>
-                            <td id="barangay-qty-${res.barangayItem.id}">${res.barangayItem.quantity}</td>
-                            <td class="text-center space-x-1">
-                                <button class="btn btn-xs btn-info restockBtn" data-id="${res.barangayItem.id}" data-name="${res.barangayItem.item_name}"><i class="fa-solid fa-plus"></i> Restock</button>
-                                <button class="btn btn-xs btn-success transferBtn" data-id="${res.barangayItem.id}">Transfer</button>
-                                <button class="btn btn-xs btn-error deleteBarangayBtn" data-id="${res.barangayItem.id}"><i class="fa-solid fa-trash"></i></button>
-                            </td>
-                        </tr>
-                    `);
+                            <tr id="barangay-row-${res.barangayItem.id}">
+                                <td class="font-medium">${res.barangayItem.item_name}</td>
+                                <td id="barangay-qty-${res.barangayItem.id}">${res.barangayItem.quantity}</td>
+                                <td class="text-center space-x-1">
+                                    <button class="btn btn-xs btn-info restockBtn" data-id="${res.barangayItem.id}" data-name="${res.barangayItem.item_name}"><i class="fa-solid fa-plus"></i> Restock</button>
+                                    <button class="btn btn-xs btn-success transferBtn" data-id="${res.barangayItem.id}">Transfer</button>
+                                    <button
+                                        class="btn btn-xs btn-warning deductBarangayBtn"
+                                        data-id="${res.barangayItem.id}"
+                                        title="Deduct 1"
+                                    >
+                                        <i class="fa-solid fa-minus"></i>
+                                    </button>
+                                    <button class="btn btn-xs btn-error deleteBarangayBtn" data-id="${res.barangayItem.id}"><i class="fa-solid fa-trash"></i></button>
+                                </td>
+                            </tr>
+                        `);
                     $("#barangayForm")[0].reset();
                 }).fail(() => showToastError('Failed to add barangay stock'));
             });
@@ -276,7 +336,7 @@
             $(document).on("click", ".deleteBtn", function () {
                 const id = $(this).data("id");
                 const row = $(this).closest("tr");
-                
+
                 Swal.fire({
                     title: "Delete from Vendo?",
                     text: "This removes it from the machine inventory.",
@@ -304,9 +364,9 @@
                                     });
                                 } else {
                                     // Generic error for 500s or other issues
-                                    Toast.fire({ 
-                                        icon: 'error', 
-                                        title: xhr.responseJSON?.message || 'Failed to delete item' 
+                                    Toast.fire({
+                                        icon: 'error',
+                                        title: xhr.responseJSON?.message || 'Failed to delete item'
                                     });
                                 }
                             }
@@ -315,11 +375,11 @@
                 });
             });
 
-           // --- Delete Barangay Stock ---
+            // --- Delete Barangay Stock ---
             $(document).on("click", ".deleteBarangayBtn", function () {
                 const id = $(this).data('id');
                 const row = $(`#barangay-row-${id}`);
-                
+
                 Swal.fire({
                     title: "Are you sure?",
                     text: "This will remove the item from barangay records forever.",
