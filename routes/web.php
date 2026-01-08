@@ -20,6 +20,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/manage/user', [UserController::class, 'index'])->name('user.index');
         Route::post('/manage/user', [UserController::class, 'store'])->name('user.store');
         Route::delete('/user/{id}', [UserController::class, 'destroy'])->name('user.destroy');
+    });
+
+    // Routes for Admin and Worker
+    Route::middleware('role:admin,worker')->group(function () {
+
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::post('/items/{item}/restock', [DashboardController::class, 'restock']);
+        Route::get('/dashboard/summary', [DashboardController::class, 'summary'])->name('dashboard.summary');
+        Route::get('/dashboard/analytics', [DashboardController::class, 'analytics'])->name('dashboard.analytics');
+        Route::get('/recent-logs', [DashboardController::class, 'recentLogs'])->name('dashboard.recentLogs');
 
         Route::get('/items/inventory', [ItemController::class, 'index'])->name('item.index');
         Route::post('/items/inventory', [ItemController::class, 'store'])->name('item.store');
@@ -42,16 +52,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/security-pin', [SecurityPinController::class, 'store'])
             ->middleware('auth');
         Route::patch('/barangay-stock/{barangayStock}/deduct', [BarangayStockController::class, 'deduct']);
-    });
-
-    // Routes for Admin and Worker
-    Route::middleware('role:admin,worker')->group(function () {
-
-        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-        Route::post('/items/{item}/restock', [DashboardController::class, 'restock']);
-        Route::get('/dashboard/summary', [DashboardController::class, 'summary'])->name('dashboard.summary');
-        Route::get('/dashboard/analytics', [DashboardController::class, 'analytics'])->name('dashboard.analytics');
-        Route::get('/recent-logs', [DashboardController::class, 'recentLogs'])->name('dashboard.recentLogs');
     });
 
     // Logout Route

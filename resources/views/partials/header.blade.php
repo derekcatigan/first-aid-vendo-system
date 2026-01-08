@@ -25,12 +25,12 @@
                                                 {{ request()->routeIs('user.index') ? 'text-blue-600 font-semibold' : 'hover:text-blue-600' }}">
                         <i class="fa-solid fa-users"></i> Manage Users
                     </a>
+                @endif
 
-                    <a href="{{ route('item.index') }}" class="flex items-center gap-1 transition 
+                 <a href="{{ route('item.index') }}" class="flex items-center gap-1 transition 
                         {{ request()->routeIs('item.*') ? 'text-blue-600 font-semibold' : 'hover:text-blue-600' }}">
                         <i class="fa-solid fa-boxes-stacked"></i> Manage Inventory
                     </a>
-                @endif
             </div>
 
             {{-- User Dropdown --}}

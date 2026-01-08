@@ -184,10 +184,10 @@
                             </span>
 
 
-                            <button class="btn btn-success btn-sm"
+                            {{-- <button class="btn btn-success btn-sm"
                                 onclick="openRestockModal({{ $item->id }}, '{{ addslashes($item->item_name) }}')">
                                 Restock
-                            </button>
+                            </button> --}}
                         </div>
                     </div>
                 @endforeach
@@ -197,7 +197,7 @@
     </div>
 
     {{-- Restock Modal --}}
-    <dialog id="restockModal" class="modal">
+    {{-- <dialog id="restockModal" class="modal">
         <form id="restockForm" method="dialog" class="modal-box" onsubmit="return false;">
             <h3 class="font-bold text-lg mb-3">Restock Item</h3>
 
@@ -216,7 +216,7 @@
                 <button type="button" class="btn btn-primary" id="confirmRestock">Confirm</button>
             </div>
         </form>
-    </dialog>
+    </dialog> --}}
 @endsection
 
 @section('script')
@@ -322,14 +322,14 @@
                     const time = log.created_at_formatted; // use the pre-formatted string
 
                     tbody.append(`
-                                                                <tr class="text-sm hover:bg-gray-50 transition-colors">
-                                                                    <td class="px-4 py-3 font-medium text-gray-700">${action}</td>
-                                                                    <td class="px-4 py-3 text-gray-700">${itemName}</td>
-                                                                    <td class="px-4 py-3">${quantity}</td>
-                                                                    <td class="px-4 py-3 text-gray-700">${user}</td>
-                                                                    <td class="px-4 py-3 text-gray-700">${time}</td>
-                                                                </tr>
-                                                            `);
+                                                                    <tr class="text-sm hover:bg-gray-50 transition-colors">
+                                                                        <td class="px-4 py-3 font-medium text-gray-700">${action}</td>
+                                                                        <td class="px-4 py-3 text-gray-700">${itemName}</td>
+                                                                        <td class="px-4 py-3">${quantity}</td>
+                                                                        <td class="px-4 py-3 text-gray-700">${user}</td>
+                                                                        <td class="px-4 py-3 text-gray-700">${time}</td>
+                                                                    </tr>
+                                                                `);
                 });
             });
         }
