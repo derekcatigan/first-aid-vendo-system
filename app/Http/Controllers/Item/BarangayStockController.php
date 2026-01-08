@@ -80,29 +80,41 @@ class BarangayStockController extends Controller
             return response()->json(['message' => 'Transfer quantity exceeds barangay stock'], 422);
         }
 
-        // 2. Find if any item is ALREADY using this keypad or motor
-        $existingItem = Item::where('is_active', true)
+        // 2. NEW CHECK: Prevent the same item name from being in two different slots
+        // We look for any item with the same name that IS NOT in the requested slot.
+        $duplicateItem = Item::where('item_name', $barangayStock->item_name)
+            ->where(function ($q) use ($validated) {
+                $q->where('keypad', '!=', $validated['keypad'])
+                    ->orWhere('motor_index', '!=', $validated['motor_index']);
+            })->first();
+
+        if ($duplicateItem) {
+            return response()->json([
+                'message' => " '{$barangayStock->item_name}' is already assigned to Keypad {$duplicateItem->keypad} / Motor {$duplicateItem->motor_index}. Please restock the existing slot instead."
+            ], 422);
+        }
+
+        // 3. HARDWARE CONFLICT CHECK: Is this slot taken by a DIFFERENT active item?
+        $slotConflict = Item::where('is_active', true)
             ->where(function ($query) use ($validated) {
                 $query->where('keypad', $validated['keypad'])
                     ->orWhere('motor_index', $validated['motor_index']);
-            })->first();
+            })
+            ->where('item_name', '!=', $barangayStock->item_name) // Conflict only if it's a different name
+            ->first();
 
-        if ($existingItem) {
-            // ERROR: Different item is occupying the slot
-            if ($existingItem->item_name !== $barangayStock->item_name) {
-                return response()->json([
-                    'message' => "Slot (Keypad {$validated['keypad']}/Motor {$validated['motor_index']}) is already occupied by '{$existingItem->item_name}'."
-                ], 422);
-            }
-            // SUCCESS PATH A: Same item exists, we will increment it
+        if ($slotConflict) {
+            return response()->json([
+                'message' => "Slot (K{$validated['keypad']}/M{$validated['motor_index']}) is currently used by '{$slotConflict->item_name}'."
+            ], 422);
         }
 
         DB::beginTransaction();
         try {
-            // Deduct from barangay stock
+            // Deduct from barangay
             $barangayStock->decrement('quantity', $validated['quantity']);
 
-            // 3. Update existing or Create new
+            // 4. Update existing or Create new
             $item = Item::updateOrCreate(
                 [
                     'item_name'   => $barangayStock->item_name,
@@ -116,10 +128,9 @@ class BarangayStockController extends Controller
                 ]
             );
 
-            // Increment the quantity (works for both new and existing)
             $item->increment('quantity', $validated['quantity']);
 
-            // 4. Log the movement
+            // 5. Log it
             ItemLog::create([
                 'item_id' => $item->id,
                 'user_id' => Auth::id(),
@@ -130,13 +141,13 @@ class BarangayStockController extends Controller
             DB::commit();
 
             return response()->json([
-                'message' => $existingItem ? 'Quantity added to existing Vendo item' : 'New item added to Vendo',
+                'message' => 'Transfer successful',
                 'remainingBarangayQty' => $barangayStock->quantity,
                 'vendoItem' => $item
             ]);
         } catch (Exception $e) {
             DB::rollBack();
-            Log::error('Barangay transfer failed: ' . $e->getMessage());
+            Log::error($e->getMessage());
             return response()->json(['message' => 'Transfer failed'], 500);
         }
     }
