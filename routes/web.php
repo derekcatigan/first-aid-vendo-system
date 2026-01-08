@@ -35,6 +35,8 @@ Route::middleware('auth')->group(function () {
 
         // Transfer barangay stock to vending machine
         Route::post('/barangay-stock/transfer/{barangayStock}', [BarangayStockController::class, 'transfer'])->name('barangay.transfer');
+        Route::post('/barangay-stock/{barangayStock}/restock', [BarangayStockController::class, 'restock']);
+        Route::delete('/barangay-stock/{barangayStock}', [BarangayStockController::class, 'destroy']);
 
         Route::post('/security-pin', [SecurityPinController::class, 'store'])
             ->middleware('auth');

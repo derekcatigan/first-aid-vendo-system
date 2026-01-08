@@ -18,73 +18,11 @@ class ItemController extends Controller
 {
     public function index()
     {
-        $items = Item::orderBy('item_name')->get();
-        $barangayStocks = BarangayStock::orderBy('item_name')->get();
+        $items = Item::query()->orderBy('item_name', 'asc')->get();
+        $barangayStocks = BarangayStock::query()->orderBy('item_name', 'asc')->get();
 
         return view('item-inventory', compact('items', 'barangayStocks'));
     }
-
-    // public function store(Request $request)
-    // {
-    //     $validated = $request->validate([
-    //         'itemName'        => [
-    //             'required',
-    //             'string',
-    //             'max:255',
-    //             // Prevent duplicate active items in Vendo
-    //             Rule::unique('items', 'item_name')->where(fn($q) => $q->where('is_active', true)),
-    //             // Prevent duplicate names in BarangayStock
-    //             Rule::unique('barangay_stocks', 'item_name'),
-    //         ],
-    //         'itemDescription' => 'nullable|string',
-    //         'itemQuantity'    => 'required|integer|min:0',
-    //         'itemKey' => [
-    //             'required',
-    //             'integer',
-    //             Rule::unique('items', 'keypad')->where(fn($q) => $q->where('is_active', true)),
-    //         ],
-    //         'itemMotor' => [
-    //             'required',
-    //             'integer',
-    //             Rule::unique('items', 'motor_index')->where(fn($q) => $q->where('is_active', true)),
-    //         ],
-    //         'itemLowStock'    => 'required|integer|min:0',
-    //     ]);
-
-    //     DB::beginTransaction();
-
-    //     try {
-    //         $item = Item::create([
-    //             'item_name'           => Str::title($validated['itemName']),
-    //             'description'         => $validated['itemDescription'],
-    //             'quantity'            => $validated['itemQuantity'],
-    //             'keypad'              => $validated['itemKey'],
-    //             'motor_index'         => $validated['itemMotor'],
-    //             'low_stock_threshold' => $validated['itemLowStock'],
-    //         ]);
-
-    //         ItemLog::create([
-    //             'item_id'         => $item->id,
-    //             'user_id'         => Auth::id(),
-    //             'quantity_change' => $validated['itemQuantity'],
-    //             'log_type'        => 'Initial Add',
-    //         ]);
-
-    //         DB::commit();
-
-    //         return response()->json([
-    //             'message' => 'Item created successfully',
-    //             'item' => $item
-    //         ]);
-    //     } catch (Exception $e) {
-    //         DB::rollBack();
-    //         Log::error('Item store failed: ' . $e->getMessage());
-
-    //         return response()->json([
-    //             'message' => 'Failed to create item. ' . $e->getMessage(),
-    //         ], 500);
-    //     }
-    // }
 
     public function toggleStatus(Item $item)
     {
@@ -144,51 +82,18 @@ class ItemController extends Controller
         }
     }
 
-    public function updateQuantity(Request $request, Item $item)
-    {
-        $validated = $request->validate([
-            'quantity' => 'required|integer|min:0',
-        ]);
-
-        DB::beginTransaction();
-
-        try {
-            $oldQty = $item->quantity;
-            $newQty = $validated['quantity'];
-            $change = $newQty - $oldQty;
-
-            $item->update([
-                'quantity' => $newQty,
-            ]);
-
-            ItemLog::create([
-                'item_id' => $item->id,
-                'user_id' => Auth::id(),
-                'quantity_change' => $change,
-                'log_type' => 'update',
-            ]);
-
-            DB::commit();
-
-            return response()->json([
-                'message' => 'Quantity updated successfully',
-                'quantity' => $newQty
-            ]);
-        } catch (Exception $e) {
-            DB::rollBack();
-            Log::error($e->getMessage());
-
-            return response()->json([
-                'message' => 'Failed to update quantity'
-            ], 500);
-        }
-    }
-
-
     public function destroy($id)
     {
         try {
             $item = Item::findOrFail($id);
+
+            // --- NEW SAFETY CHECK ---
+            // Prevent deleting if there is still stock in the machine
+            if ($item->quantity > 0) {
+                return response()->json([
+                    'message' => "Cannot delete. There are still {$item->quantity} units in the machine. Please empty the machine first."
+                ], 422); // 422 is standard for validation/logic errors
+            }
 
             DB::beginTransaction();
 
@@ -204,7 +109,6 @@ class ItemController extends Controller
                 'message' => 'Item deleted successfully'
             ]);
         } catch (Exception $e) {
-
             DB::rollBack();
             Log::error('Item delete failed: ' . $e->getMessage());
 
