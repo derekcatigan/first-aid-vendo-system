@@ -23,7 +23,6 @@ class DashboardController extends Controller
 
         $recentLogs = ItemLog::with(['item', 'user'])
             ->latest()
-            ->take(10)
             ->get();
 
         $items = Item::orderBy('item_name')->get();
@@ -96,7 +95,6 @@ class DashboardController extends Controller
     {
         $logs = ItemLog::with(['item', 'user'])
             ->latest()
-            ->take(10)
             ->get()
             ->map(function ($log) {
                 return [
